@@ -3,8 +3,8 @@ import threading
 import socket
 
 
-PORTS = [2222, 3333, 4444]
-SERVERS = [5555, 6666, 7777, 8888, 9999]
+PORTS = [1010, 1111, 1212]
+SERVERS = [1000, 1001, 1002, 1003, 1004]
 
 user_index = int(input("user index: "))
 server_index = int(input("server index: "))

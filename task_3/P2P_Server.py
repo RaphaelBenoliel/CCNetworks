@@ -119,7 +119,7 @@ def send_to_server(other_index):
         print('server ' + str(other_index) + ' did not respond')
 
 
-PORTS = [5555, 6666, 7777, 8888, 9999]
+PORTS = [1000, 1001, 1002, 1003, 1004]
 SERVERS = {}
 USERS = []
 SERVERS_SOCKETS = {}
