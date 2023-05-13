@@ -1,38 +1,54 @@
 import struct
-import threading
 import socket
+import threading
+server_Ip = ''
+server_port = 0
+my_name = ''
+sock = None
+try:
+    server_Ip = '127.0.0.1'
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    my_name = input('Enter your name: ')
+    server_port = int(input("Enter server port: "))
+    sock.connect((server_Ip, server_port))
+except ConnectionRefusedError:
+    print(server_Ip, server_port, ': not connected')
 
+type = 2
+subtype = 1
+sublen = 0
+dataName = my_name.encode()
+length = len(dataName)
 
-PORTS = [1010, 1111, 1212]
-SERVERS = [1000, 1001, 1002, 1003, 1004]
-
-user_index = int(input("user index: "))
-server_index = int(input("server index: "))
-name = input('username: ')
-
-sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
-sock.bind(('127.0.0.1', PORTS[user_index]))
-sock.connect(('127.0.0.1', SERVERS[server_index]))
-
-msg_type = 2
-sub_type = 1
-sub_len = 0
-
-name = name.encode()
-msg_len = int(len(name))
-
-
-data = struct.pack('>bbhh{}s'.format(msg_len), msg_type, sub_type, msg_len, sub_len, name)
+data = struct.pack('>bbhh{}s'.format(length), type, subtype, length, sublen, dataName)
 sock.send(data)
 
 
-def output_recv():
+def output_recvfrom(sock):
+    global dataName
     while True:
-        header = sock.recv(6)
-        msg_type, sub_type, msg_len, sub_len = struct.unpack('>bbhh', header)
+        try:
+            dataName = sock.recv(6)
+        except Exception:
+            print(': recv Error')
+        if len(dataName) == 6:
+            type, subtype, Len, sublen = struct.unpack('>bbhh', dataName)
+            if type == 3:
+                dataName = sock.recv(Len)
+                dataName = struct.unpack('>{}s'.format(Len), dataName)[0].decode()
+                print(dataName)
 
-        data = sock.recv(msg_len)
-        print("Server [" + str(server_index) + "] replay: " + str(data.decode()))
 
+threading.Thread(target=output_recvfrom, args=(sock,)).start()
 
-x = threading.Thread(target=output_recv, args=()).start()
+while True:
+    receiver = input("Enter receiver name: ").strip().encode()
+    data = input('Enter message for receiver: \n').strip().encode()
+    data = receiver + b' ' + data
+    type = 3
+    subtype = 0
+    sublen = len(receiver)
+    dataName = data
+    length = len(data)
+    data = struct.pack('>bbhh{}s'.format(length), type, subtype, length, sublen, dataName)
+    sock.send(data)
